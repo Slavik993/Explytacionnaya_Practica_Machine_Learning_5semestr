@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSTM с механизмом внимания</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            gap: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #555;
+        }
+        .legend-box {
+            width: 30px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #333;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Архитектура нейронной сети</h1>
+        <div class="subtitle">Bidirectional LSTM + Attention Mechanism</div>
+        
+        <canvas id="modelCanvas" width="850" height="700"></canvas>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e3f2fd;"></div>
+                <span>Input Layer</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #fff3e0;"></div>
+                <span>Bidirectional LSTM</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #fce4ec;"></div>
+                <span>LSTM</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #f3e5f5;"></div>
+                <span>Attention</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e8f5e9;"></div>
+                <span>Dense</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #ffebee;"></div>
+                <span>Dropout</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="downloadImage()">💾 Скачать PNG</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('modelCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Цвета для разных типов слоёв
+        const colors = {
+            input: '#e3f2fd',
+            biLSTM: '#fff3e0',
+            lstm: '#fce4ec',
+            attention: '#f3e5f5',
+            dense: '#e8f5e9',
+            dropout: '#ffebee',
+            output: '#c8e6c9'
+        };
+
+        // Определение слоёв модели
+        const layers = [
+            { name: 'Input', shape: '(12, features)', type: 'input', y: 50 },
+            { name: 'Bidirectional LSTM', shape: '(12, 256)', params: '128 units × 2', type: 'biLSTM', y: 130 },
+            { name: 'Dropout', shape: '(12, 256)', params: 'rate=0.3', type: 'dropout', y: 210 },
+            { name: 'LSTM', shape: '(12, 64)', params: '64 units', type: 'lstm', y: 290 },
+            { name: 'Attention Layer', shape: '(64,)', params: 'custom', type: 'attention', y: 370 },
+            { name: 'Dense', shape: '(50,)', params: 'ReLU', type: 'dense', y: 450 },
+            { name: 'Dropout', shape: '(50,)', params: 'rate=0.2', type: 'dropout', y: 530 },
+            { name: 'Output Dense', shape: '(1,)', params: 'Linear', type: 'output', y: 610 }
+        ];
+
+        function drawLayer(layer, index) {
+            const x = canvas.width / 2;
+            const y = layer.y;
+            const width = 300;
+            const height = 60;
+
+            // Тень
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
+
+            // Прямоугольник слоя
+            ctx.fillStyle = colors[layer.type];
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.roundRect(x - width/2, y, width, height, 10);
+            ctx.fill();
+            ctx.stroke();
+
+            // Убираем тень для текста
+            ctx.shadowColor = 'transparent';
+
+            // Название слоя
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(layer.name, x, y + 25);
+
+            // Форма выхода
+            ctx.font = '13px Arial';
+            ctx.fillStyle = '#555';
+            ctx.fillText(layer.shape, x, y + 43);
+
+            // Параметры (справа)
+            if (layer.params) {
+                ctx.font = 'italic 11px Arial';
+                ctx.fillStyle = '#888';
+                ctx.textAlign = 'right';
+                ctx.fillText(layer.params, x + width/2 - 10, y + 15);
+            }
+
+            // Стрелка вниз
+            if (index < layers.length - 1) {
+                const arrowY = y + height;
+                const nextY = layers[index + 1].y;
+                
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x, arrowY);
+                ctx.lineTo(x, nextY);
+                ctx.stroke();
+
+                // Наконечник стрелки
+                ctx.fillStyle = '#666';
+                ctx.beginPath();
+                ctx.moveTo(x, nextY);
+                ctx.lineTo(x - 6, nextY - 10);
+                ctx.lineTo(x + 6, nextY - 10);
+                ctx.fill();
+            }
+        }
+
+        // Рисуем все слои
+        layers.forEach((layer, index) => drawLayer(layer, index));
+
+        // Добавляем информацию об оптимизаторе
+        ctx.font = '12px Arial';
+        ctx.fillStyle = '#999';
+        ctx.textAlign = 'left';
+        ctx.fillText('Optimizer: Adam (lr=0.001)', 20, canvas.height - 20);
+        ctx.fillText('Loss: MSE | Metric: MAE', 20, canvas.height - 5);
+
+        // Функция скачивания
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'lstm_attention_model.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // Поддержка roundRect для старых браузеров
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                this.moveTo(x + r, y);
+                this.lineTo(x + w - r, y);
+                this.quadraticCurveTo(x + w, y, x + w, y + r);
+                this.lineTo(x + w, y + h - r);
+                this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                this.lineTo(x + r, y + h);
+                this.quadraticCurveTo(x, y + h, x, y + h - r);
+                this.lineTo(x, y + r);
+                this.quadraticCurveTo(x, y, x + r, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>
