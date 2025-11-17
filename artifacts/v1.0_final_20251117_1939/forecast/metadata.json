@@ -1,0 +1,8 @@
+{
+  "model_version": "v1.0_final",
+  "generated_at": "2025-11-17T19:39:15.178146",
+  "test_mape": 1.536,
+  "forecast_horizon_months": 12,
+  "last_training_date": "2025-12-01",
+  "description": "Прогноз потребности в кадрах на 2025–2026 (стекинг LSTM + XGBoost + LightGBM)"
+}

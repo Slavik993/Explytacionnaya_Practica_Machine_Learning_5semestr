@@ -1,0 +1,30 @@
+{
+  "project": "Прогнозирование потребности в кадрах (IBM HR Analytics)",
+  "author": "Ты — лучший студент 2025",
+  "version": "v1.0_final",
+  "date": "17.11.2025 19:39",
+  "final_mape": 1.536,
+  "model_type": "Bidirectional LSTM + Attention + Stacking (XGBoost + LightGBM)",
+  "seq_length": 36,
+  "features_used": [
+    "demand",
+    "month_sin",
+    "month_cos",
+    "quarter_sin",
+    "quarter_cos",
+    "year_normalized",
+    "lag_1",
+    "lag_3",
+    "lag_6",
+    "lag_12",
+    "rolling_mean_3",
+    "rolling_mean_12",
+    "rolling_std_12",
+    "trend"
+  ],
+  "artifacts": {
+    "model": "artifacts/v1.0_final_20251117_1939/model/",
+    "forecast": "artifacts/v1.0_final_20251117_1939/forecast/",
+    "data": "artifacts/v1.0_final_20251117_1939/data/"
+  }
+}
