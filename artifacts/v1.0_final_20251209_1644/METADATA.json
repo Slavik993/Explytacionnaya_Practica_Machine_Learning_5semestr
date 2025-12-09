@@ -1,0 +1,25 @@
+{
+  "project": "Прогнозирование потребности в кадрах (IBM HR Analytics)",
+  "author": "Студент-гений 2025 года",
+  "version": "v1.0_final",
+  "date": "09.12.2025 16:44",
+  "final_mape": 125.73,
+  "model_type": "Bidirectional LSTM + Attention + Stacking",
+  "seq_length": 24,
+  "features_used": [
+    "demand",
+    "month_sin",
+    "month_cos",
+    "quarter_sin",
+    "quarter_cos",
+    "year_normalized",
+    "lag_1",
+    "lag_3",
+    "lag_6",
+    "lag_12",
+    "rolling_mean_3",
+    "rolling_mean_12",
+    "rolling_std_12",
+    "trend"
+  ]
+}
